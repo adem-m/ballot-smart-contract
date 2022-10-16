@@ -99,5 +99,15 @@ describe("Ballot", () => {
 
       await expect(_ballot.vote([1, 2, 3, 4])).to.be.revertedWith("The number of choices does not match the number of proposals.");
     })
+
+    it("should fail when the ballot is already closed", async () => {
+      it("should fail when passing not enough scores", async () => {
+        const { ballot, otherAccount } = await loadFixture(deployBallotFixture);
+        await ballot.close();
+        const _ballot = ballot.connect(otherAccount);
+  
+        await expect(_ballot.vote([1, 2, 3])).to.be.revertedWith("This ballot is already closed.");
+      })
+    })
   })
 })
