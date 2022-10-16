@@ -59,7 +59,7 @@ contract Ballot {
   }
 
   function close() public onlyWhenOpen {
-    require(msg.sender == chairman);
+    require(msg.sender == chairman, "Only the chairman can close the ballot.");
 
     isOpen = false;
   }

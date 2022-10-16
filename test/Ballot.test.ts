@@ -42,4 +42,28 @@ describe("Ballot", () => {
       )).to.be.revertedWith("You must provide a description for the ballot.");
     })
   })
+
+  describe("close", () => {
+    it("should close properly", async () => {
+      const { ballot } = await loadFixture(deployBallotFixture);
+
+      expect(await ballot.isOpen()).to.equal(true);
+      await expect(ballot.close()).to.be.fulfilled;
+      expect(await ballot.isOpen()).to.equal(false);
+    })
+
+    it("should not close twice", async () => {
+      const { ballot } = await loadFixture(deployBallotFixture);
+      await ballot.close();
+
+      await expect(ballot.close()).to.be.revertedWith("This ballot is already closed.");
+    })
+
+    it("should be closed but only by the chairman", async () => {
+      const { ballot, otherAccount } = await loadFixture(deployBallotFixture);
+      const failBallot = ballot.connect(otherAccount);
+
+      await expect(failBallot.close()).to.be.revertedWith("Only the chairman can close the ballot.");
+    })
+  })
 })
