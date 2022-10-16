@@ -66,4 +66,38 @@ describe("Ballot", () => {
       await expect(failBallot.close()).to.be.revertedWith("Only the chairman can close the ballot.");
     })
   })
+
+  describe("vote", () => {
+    it("should update the proposals' scores", async () => {
+      const { ballot, otherAccount } = await loadFixture(deployBallotFixture);
+      const _ballot = ballot.connect(otherAccount);
+      
+      await expect(_ballot.vote([1, 2, 3])).to.be.fulfilled;
+      expect((await _ballot.getProposal(0)).score).to.equal(1);
+      expect((await _ballot.getProposal(1)).score).to.equal(2);
+      expect((await _ballot.getProposal(2)).score).to.equal(3);
+    })
+
+    it("should only work once per voter", async () => {
+      const { ballot, otherAccount } = await loadFixture(deployBallotFixture);
+      const _ballot = ballot.connect(otherAccount);
+      await _ballot.vote([1, 2, 3]);
+
+      await expect(_ballot.vote([1, 2, 3])).to.be.revertedWith("You have already voted.");
+    })
+
+    it("should fail when passing not enough scores", async () => {
+      const { ballot, otherAccount } = await loadFixture(deployBallotFixture);
+      const _ballot = ballot.connect(otherAccount);
+
+      await expect(_ballot.vote([1, 2])).to.be.revertedWith("The number of choices does not match the number of proposals.");
+    })
+
+    it("should fail when passing too many scores", async () => {
+      const { ballot, otherAccount } = await loadFixture(deployBallotFixture);
+      const _ballot = ballot.connect(otherAccount);
+
+      await expect(_ballot.vote([1, 2, 3, 4])).to.be.revertedWith("The number of choices does not match the number of proposals.");
+    })
+  })
 })

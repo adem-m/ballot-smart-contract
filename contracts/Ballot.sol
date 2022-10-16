@@ -50,7 +50,7 @@ contract Ballot {
 
   function vote(Choice[] memory _choices) public onlyWhenOpen {
     require(!voters[msg.sender], "You have already voted.");
-    require(_choices.length == proposalCount, "The number of choices does not match the number of proposals");
+    require(_choices.length == proposalCount, "The number of choices does not match the number of proposals.");
 
     voters[msg.sender] = true;
     for (uint i = 0; i < _choices.length; i++) {
