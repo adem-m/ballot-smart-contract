@@ -86,7 +86,7 @@ describe("Voting system", () => {
       const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
       const _contract = contract.connect(account2);
 
-      await expect(_contract.vote(3, [1, 2, 3])).to.be.revertedWith("Voting session not found");
+      await expect(_contract.vote(3, [1, 2, 3])).to.be.revertedWith("Voting session not found.");
     });
 
     it("should revert when voting more than once", async () => {
@@ -103,6 +103,48 @@ describe("Voting system", () => {
       await contract.connect(account1).close(0);
 
       await expect(_contract.vote(0, [1, 2, 3])).to.be.revertedWith("This voting session is already closed.");
+    });
+
+    it("should revert when providing too few choices", async () => {
+      const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account2);
+
+      await expect(_contract.vote(0, [1, 2])).to.be.revertedWith("Incorrect number of choices.");
+    });
+
+    it("should revert when providing too many choices", async () => {
+      const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account2);
+
+      await expect(_contract.vote(0, [1, 2, 3, 4])).to.be.revertedWith("Incorrect number of choices.");
+    });
+  });
+
+  describe("close", () => {
+    it("should close the voting session", async () => {
+      const { contract, account1 } = await loadFixture(createVotingSessionWithAccount1);
+
+      await expect(contract.connect(account1).close(0)).to.be.fulfilled;
+    });
+
+    it("should revert when the voting session does not exist", async () => {
+      const { contract, account1 } = await loadFixture(createVotingSessionWithAccount1);
+
+      await expect(contract.connect(account1).close(2)).to.be.revertedWith("Voting session not found.");
+    });
+
+    it("should revert when the the caller is not the chairman", async () => {
+      const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
+
+      await expect(contract.connect(account2).close(0)).to.be.revertedWith("You are not the chairman.");
+    });
+
+    it("should revert when the voting session is already closed", async () => {
+      const { contract, account1 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account1);
+      await _contract.close(0);
+
+      await expect(_contract.close(0)).to.be.revertedWith("This voting session is already closed.");
     });
   });
 });

@@ -25,12 +25,12 @@ contract VotingSystem {
   event VotingSessionClosed(uint votingSessionId);
 
   modifier onlyWhenExists(uint _votingSessionId) {
-    require(_votingSessionId < votingSessions.length, "Voting session not found");
+    require(_votingSessionId < votingSessions.length, "Voting session not found.");
     _;
   }
 
   modifier onlyWhenOpen(uint _votingSessionId) {
-    require(_votingSessionId < votingSessions.length, "Voting session not found");
+    require(_votingSessionId < votingSessions.length, "Voting session not found.");
     require(votingSessions[_votingSessionId].isOpen, "This voting session is already closed.");
     _;
   }
@@ -92,7 +92,7 @@ contract VotingSystem {
   }
 
   function close(uint _votingSessionId) external onlyWhenOpen(_votingSessionId) {
-    require(_votingSessionToChairman[_votingSessionId] == msg.sender);
+    require(_votingSessionToChairman[_votingSessionId] == msg.sender, "You are not the chairman.");
 
     votingSessions[_votingSessionId].isOpen = false;
 
