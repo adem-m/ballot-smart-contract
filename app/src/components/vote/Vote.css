@@ -1,0 +1,19 @@
+.vote {
+    display: flex;
+    justify-content: space-between;
+    margin: 30px;
+}
+
+.vote-question {
+    max-width: 55%;
+    text-align: start;
+}
+
+.vote-label {
+    font-style: italic;
+    margin-right: 10px;
+}
+
+.vote-rating-block {
+    display: flex;
+}

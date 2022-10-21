@@ -1,0 +1,15 @@
+.vote-proposal-action-block {
+    display: flex;
+    justify-content: space-between;
+    width: fit-content;
+    margin: 20px auto 0;
+    align-items: center;
+}
+
+.vote-proposal-action-block button {
+    margin-left: 20px;
+}
+
+#vote-proposal-input {
+    width: 400px;
+}

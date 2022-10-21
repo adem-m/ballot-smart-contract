@@ -1,0 +1,16 @@
+.toolbar {
+    display: flex;
+    background-color: #3f3f3f;
+    align-items: center;
+}
+
+.app-logo {
+    height: 40px;
+    margin: 16px;
+}
+
+.app-title {
+    color: #d7d7d7;
+    font-size: 1.5em;
+    cursor: default;
+}
