@@ -75,19 +75,13 @@ contract VotingSystem {
     return sessions;
   }
 
-  function getProposalContents(uint _votingSessionId) external view onlyWhenExists(_votingSessionId) returns (string[] memory) {
-    Proposal[] memory currentProposals = _proposalsBySession[_votingSessionId];
-    string[] memory contents = new string[](currentProposals.length);
-
-    for (uint i = 0; i < currentProposals.length; i++) {
-      contents[i] = currentProposals[i].content;
-    }
-    return contents;
+  function getProposals(uint _votingSessionId) external view onlyWhenExists(_votingSessionId) returns (Proposal[] memory) {
+    return _proposalsBySession[_votingSessionId];
   }
 
   function vote(uint _votingSessionId, Choice[] memory _choices) external onlyWhenOpen(_votingSessionId) {
-    require(!_votersBySession[_votingSessionId][msg.sender]);
-    require(_choices.length == _proposalsBySession[_votingSessionId].length);
+    require(!_votersBySession[_votingSessionId][msg.sender], "You have already voted.");
+    require(_choices.length == _proposalsBySession[_votingSessionId].length, "Incorrect number of choices.");
 
     _votersBySession[_votingSessionId][msg.sender] = true;
     for (uint i = 0; i < _choices.length; i++) {

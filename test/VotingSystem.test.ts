@@ -19,6 +19,16 @@ describe("Voting system", () => {
     return { contract, owner, account1, account2 };
   }
 
+  async function createVotingSessionWithAccount1() {
+    const { contract, owner, account1, account2 } = await deployContractFixture();
+    await contract.connect(account1).initVotingSession(
+      votingSessions[0].description,
+      votingSessions[0].proposals
+    );
+
+    return { contract, owner, account1, account2 };
+  }
+
   describe("initVotingSession", () => {
     it("should create a new voting session", async () => {
       const { contract, account1 } = await loadFixture(deployContractFixture);
@@ -50,6 +60,49 @@ describe("Voting system", () => {
         "",
         votingSessions[0].proposals
       )).to.be.revertedWith("You must provide a description for the voting session.");
+    });
+  });
+
+  describe("vote", () => {
+    it("should update the scores of each proposal", async () => {
+      const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
+
+      expect((await contract.getProposals(0)).map(p => p.score)).to.deep.equal([0, 0, 0]);
+      await expect(contract.connect(account2).vote(0, [1, 2, 3])).to.be.fulfilled;
+      expect((await contract.getProposals(0)).map(p => p.score)).to.deep.equal([1, 2, 3]);
+    });
+
+    it("should emit a 'VoteRegistered' event", async () => {
+      const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account2);
+
+      await expect(_contract.vote(0, [1, 2, 3]))
+        .to
+        .emit(_contract, "VoteRegistered")
+        .withArgs(0, account2.address);
+    });
+
+    it("should revert when the voting session does not exist", async () => {
+      const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account2);
+
+      await expect(_contract.vote(3, [1, 2, 3])).to.be.revertedWith("Voting session not found");
+    });
+
+    it("should revert when voting more than once", async () => {
+      const { contract, account2 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account2);
+      await _contract.vote(0, [1, 2, 3]);
+
+      await expect(_contract.vote(0, [1, 2, 3])).to.be.revertedWith("You have already voted.");
+    });
+
+    it("should revert when the voting session is already closed", async () => {
+      const { contract, account1, account2 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account2);
+      await contract.connect(account1).close(0);
+
+      await expect(_contract.vote(0, [1, 2, 3])).to.be.revertedWith("This voting session is already closed.");
     });
   });
 });
