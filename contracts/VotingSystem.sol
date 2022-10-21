@@ -25,17 +25,17 @@ contract VotingSystem {
   event VotingSessionClosed(uint votingSessionId);
 
   modifier onlyWhenExists(uint _votingSessionId) {
-    require(_votingSessionId < _votingSessions.length, "Voting session not found");
+    require(_votingSessionId < votingSessions.length, "Voting session not found");
     _;
   }
 
   modifier onlyWhenOpen(uint _votingSessionId) {
-    require(_votingSessionId < _votingSessions.length, "Voting session not found");
-    require(_votingSessions[_votingSessionId].isOpen, "This voting session is already closed.");
+    require(_votingSessionId < votingSessions.length, "Voting session not found");
+    require(votingSessions[_votingSessionId].isOpen, "This voting session is already closed.");
     _;
   }
 
-  VotingSession[] private _votingSessions;
+  VotingSession[] public votingSessions;
   mapping(uint => address) private _votingSessionToChairman;
   mapping(uint => Proposal[]) private _proposalsBySession;
   mapping(uint => mapping(address => bool)) private _votersBySession;
@@ -51,8 +51,8 @@ contract VotingSystem {
       isOpen: true
     });
 
-    _votingSessions.push(session);
-    uint votingSessionId = _votingSessions.length - 1;
+    votingSessions.push(session);
+    uint votingSessionId = votingSessions.length - 1;
      _votingSessionToChairman[votingSessionId] = msg.sender;
 
     for(uint i = 0; i < _proposalContents.length; i++) {
@@ -66,13 +66,13 @@ contract VotingSystem {
   }
 
   function getVotingSessions(uint _from, uint _to) external view returns (VotingSession[] memory) {
-    require(_from < _to && _to <= _votingSessions.length);
+    require(_from < _to && _to <= votingSessions.length);
 
-    VotingSession[] memory votingSessions = new VotingSession[](_to - _from);
+    VotingSession[] memory sessions = new VotingSession[](_to - _from);
     for (uint i = _from; i < _to; i++) {
-      votingSessions[i] = _votingSessions[i];
+      sessions[i] = votingSessions[i];
     }
-    return votingSessions;
+    return sessions;
   }
 
   function getProposalContents(uint _votingSessionId) external view onlyWhenExists(_votingSessionId) returns (string[] memory) {
@@ -100,7 +100,7 @@ contract VotingSystem {
   function close(uint _votingSessionId) external onlyWhenOpen(_votingSessionId) {
     require(_votingSessionToChairman[_votingSessionId] == msg.sender);
 
-    _votingSessions[_votingSessionId].isOpen = false;
+    votingSessions[_votingSessionId].isOpen = false;
 
     emit VotingSessionClosed(_votingSessionId);
   }
