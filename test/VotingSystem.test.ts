@@ -127,6 +127,16 @@ describe("Voting system", () => {
       await expect(contract.connect(account1).close(0)).to.be.fulfilled;
     });
 
+    it("should emit a 'VotingSesionClosed' event", async () => {
+      const { contract, account1 } = await loadFixture(createVotingSessionWithAccount1);
+      const _contract = contract.connect(account1);
+
+      await expect(_contract.close(0))
+        .to
+        .emit(_contract, "VotingSessionClosed")
+        .withArgs(0);
+    });
+
     it("should revert when the voting session does not exist", async () => {
       const { contract, account1 } = await loadFixture(createVotingSessionWithAccount1);
 
