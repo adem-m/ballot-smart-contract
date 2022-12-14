@@ -5,7 +5,7 @@ async function main() {
   const votingSystem = await VotingSystem.deploy();
 
   await votingSystem.deployed();
-  console.log(`Voting system deployed`);
+  console.log(`Voting system deployed to ${votingSystem.address}`);
 }
 
 main().catch((error) => {

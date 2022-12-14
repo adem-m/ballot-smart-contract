@@ -66,8 +66,14 @@ contract VotingSystem {
     }
 
     function getVotingSessions(uint _from, uint _to) external view returns (VotingSession[] memory) {
-        require(_from < _to && _to <= votingSessions.length);
+        require(_from < _to, "Cannot get voting sessions");
 
+        if (_from > votingSessions.length){
+            _from = 0;
+        }
+        if (_to > votingSessions.length){
+            _to = votingSessions.length;
+        }
         VotingSession[] memory sessions = new VotingSession[](_to - _from);
         for (uint i = _from; i < _to; i++) {
             sessions[i] = votingSessions[i];
