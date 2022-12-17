@@ -18,6 +18,7 @@ contract VotingSystem {
     struct VotingSession {
         string description;
         bool isOpen;
+        uint closingTime;
     }
 
     event VotingSessionCreated(uint votingSessionId, address chairman);
@@ -31,11 +32,11 @@ contract VotingSystem {
 
     modifier onlyWhenOpen(uint _votingSessionId) {
         require(_votingSessionId < votingSessions.length, "Voting session not found.");
-        require(votingSessions[_votingSessionId].isOpen, "This voting session is already closed.");
+        require(getIsOpen(_votingSessionId), "This voting session is already closed.");
         _;
     }
 
-    VotingSession[] public votingSessions;
+    VotingSession[] private votingSessions;
     mapping(uint => address) private _votingSessionToChairman;
     mapping(uint => Proposal[]) private _proposalsBySession;
     mapping(uint => mapping(address => bool)) private _votersBySession;
@@ -48,7 +49,8 @@ contract VotingSystem {
 
         VotingSession memory session = VotingSession({
         description : _description,
-        isOpen : true
+        isOpen : true,
+        closingTime : block.timestamp + 1 minutes
         });
 
         votingSessions.push(session);
@@ -65,18 +67,25 @@ contract VotingSystem {
         emit VotingSessionCreated(votingSessionId, msg.sender);
     }
 
+    function getVotingSession(uint _votingSessionId) external view onlyWhenExists(_votingSessionId) returns (VotingSession memory) {
+        VotingSession memory vs = votingSessions[_votingSessionId];
+        vs.isOpen = getIsOpen(_votingSessionId);
+        return vs;
+    }
+
     function getVotingSessions(uint _from, uint _to) external view returns (VotingSession[] memory) {
         require(_from < _to, "Cannot get voting sessions");
 
-        if (_from > votingSessions.length){
+        if (_from > votingSessions.length) {
             _from = 0;
         }
-        if (_to > votingSessions.length){
+        if (_to > votingSessions.length) {
             _to = votingSessions.length;
         }
         VotingSession[] memory sessions = new VotingSession[](_to - _from);
         for (uint i = _from; i < _to; i++) {
             sessions[i] = votingSessions[i];
+            sessions[i].isOpen = getIsOpen(i);
         }
         return sessions;
     }
@@ -108,7 +117,7 @@ contract VotingSystem {
     }
 
     function getWinningProposal(uint _votingSessionId) external view onlyWhenExists(_votingSessionId) returns (Proposal memory) {
-        require(!votingSessions[_votingSessionId].isOpen, "This voting session is still open.");
+        require(!getIsOpen(_votingSessionId), "This voting session is still open.");
         Proposal memory winner = _proposalsBySession[_votingSessionId][0];
         for (uint i = 1; i < _proposalsBySession[_votingSessionId].length; i++) {
             if (_proposalsBySession[_votingSessionId][i].decidingVote > winner.decidingVote) {
@@ -116,5 +125,9 @@ contract VotingSystem {
             }
         }
         return winner;
+    }
+
+    function getIsOpen(uint _votingSessionId) private view returns (bool) {
+        return votingSessions[_votingSessionId].closingTime > block.timestamp;
     }
 }

@@ -34,12 +34,11 @@ describe("Voting system", () => {
             const {contract, account1} = await loadFixture(deployContractFixture);
             const _contract = contract.connect(account1);
 
-            await expect(contract.votingSessions(0)).to.be.reverted;
             await expect(_contract.initVotingSession(
                 votingSessions[0].description,
                 votingSessions[0].proposals
             )).to.be.fulfilled;
-            await expect(contract.votingSessions(0)).to.be.fulfilled;
+            await expect(contract.getVotingSessions(0, 10)).to.be.fulfilled;
         });
 
         it("should emit a 'VotingSessionCreated' event", async () => {
@@ -97,14 +96,6 @@ describe("Voting system", () => {
             await expect(_contract.vote(0, [1, 2, 3])).to.be.revertedWith("You have already voted.");
         });
 
-        it("should revert when the voting session is already closed", async () => {
-            const {contract, account1, account2} = await loadFixture(createVotingSessionWithAccount1);
-            const _contract = contract.connect(account2);
-            await contract.connect(account1).close(0);
-
-            await expect(_contract.vote(0, [1, 2, 3])).to.be.revertedWith("This voting session is already closed.");
-        });
-
         it("should revert when providing too few choices", async () => {
             const {contract, account2} = await loadFixture(createVotingSessionWithAccount1);
             const _contract = contract.connect(account2);
@@ -148,25 +139,14 @@ describe("Voting system", () => {
 
             await expect(contract.connect(account2).close(0)).to.be.revertedWith("You are not the chairman.");
         });
-
-        it("should revert when the voting session is already closed", async () => {
-            const {contract, account1} = await loadFixture(createVotingSessionWithAccount1);
-            const _contract = contract.connect(account1);
-            await _contract.close(0);
-
-            await expect(_contract.close(0)).to.be.revertedWith("This voting session is already closed.");
-        });
     });
 
-    describe("winner", () => {
-        it("should return the winning proposal", async () => {
-            const {contract, account1, account2} = await loadFixture(createVotingSessionWithAccount1);
-            const _contract = contract.connect(account2);
-            await _contract.vote(0, [1, 2, 3]);
-            await contract.connect(account1).close(0);
-            const winningProposal = await contract.getWinningProposal(0);
+    describe("is open", () => {
+        it("should return open", async () => {
+            const {contract, account1} = await loadFixture(createVotingSessionWithAccount1);
+            const votingSessions = await contract.getVotingSessions(0, 1);
 
-            expect(winningProposal.decidingVote).to.equal(1);
+            expect(votingSessions[0].isOpen).to.be.true;
         });
     });
 });
