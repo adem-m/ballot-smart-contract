@@ -50,7 +50,7 @@ contract VotingSystem {
         VotingSession memory session = VotingSession({
         description : _description,
         isOpen : true,
-        closingTime : block.timestamp + 1 minutes
+        closingTime : block.timestamp + 3 minutes
         });
 
         votingSessions.push(session);
